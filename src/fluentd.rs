@@ -116,3 +116,35 @@ impl FluentdAppenderBuilder {
         }
     }
 }
+
+#[derive(Deserialize)]
+struct FluentdAppenderConfig {
+    addr: String,
+    tag: Option<String>,
+    encoder: Option<log4rs::encode::EncoderConfig>,
+}
+
+struct FluentdAppenderDeserializer;
+
+impl log4rs::file::Deserialize for FluentdAppenderDeserializer {
+    type Trait = log4rs::append::Append;
+    type Config = FluentdAppenderConfig;
+
+    fn deserialize(&self, config: Self::Config, deserializers: &log4rs::file::Deserializers) -> Result<Box<Self::Trait>, Box<Error + Sync + Send>> {
+        let mut builder = FluentdAppender::builder();
+
+        if let Some(encoder) = config.encoder {
+            builder = builder.encoder(deserializers.deserialize(&encoder.kind, encoder.config)?);
+        }
+
+        if let Some(tag) = config.tag {
+            builder = builder.tag(&tag);
+        }
+
+        Ok(Box::new(builder.build(config.addr)))
+    }
+}
+
+pub fn register(deserializers: &mut log4rs::file::Deserializers) {
+    deserializers.insert("fluentd", FluentdAppenderDeserializer);
+}
