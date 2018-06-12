@@ -1,0 +1,12 @@
+[package]
+name = "log4rs-fluentd"
+version = "0.1.0"
+authors = ["François Dubois <fdubois@devolutions.net>"]
+
+[dependencies]
+log = { version = "0.4", default_features = false, features = ["serde"] }
+log4rs = { version = "0.8", features = ["pattern_encoder", "simple_writer"] }
+poston = "0.1.4"
+serde = "1.0.66"
+serde_derive = "1.0.66"
+
