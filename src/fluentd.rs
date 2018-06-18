@@ -10,6 +10,7 @@ use std::time::SystemTime;
 
 #[derive(Serialize)]
 pub struct LogRecord {
+    target: String,
     level: String,
     message: String,
     #[serde(skip_serializing)]
@@ -17,9 +18,10 @@ pub struct LogRecord {
 }
 
 impl LogRecord {
-    fn new(level: String, message: &str) -> Self {
+    fn new(target: &str, level: &str, message: &str) -> Self {
         LogRecord {
-            level,
+            target: target.to_string(),
+            level: level.to_string(),
             message: message.to_owned(),
             time: SystemTime::now(),
         }
@@ -46,7 +48,7 @@ impl ::log4rs::append::Append for FluentdAppender {
         let mut writer = SimpleWriter(Vec::<u8>::new());
         self.encoder.encode(&mut writer, record)?;
 
-        let log_record = LogRecord::new(format!("{}", record.level()), &String::from_utf8_lossy(&writer.0));
+        let log_record = LogRecord::new(record.target(), &format!("{}", record.level()), &String::from_utf8_lossy(&writer.0));
         let sender = self.sender.lock().unwrap();
         sender.send(log_record)?;
         Ok(())
